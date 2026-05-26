@@ -75,7 +75,8 @@ class ReferralServiceTest {
     void selfReferral_caseInsensitive_isRejected() {
         var person = entry("alice@example.com", "aliccode");
         stubReferrer(person);
-        stubReferee(person);
+        // refereeEmail arrives upper-cased — stub must match the exact string passed to findByEmail
+        when(entryRepo.findByEmail("ALICE@EXAMPLE.COM")).thenReturn(Optional.of(person));
 
         service.trackReferral("aliccode", "ALICE@EXAMPLE.COM");
 
