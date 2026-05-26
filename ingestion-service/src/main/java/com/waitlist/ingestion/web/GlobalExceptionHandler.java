@@ -2,6 +2,7 @@ package com.waitlist.ingestion.web;
 
 import com.waitlist.ingestion.dto.SignupResponse;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -22,20 +23,22 @@ import java.util.UUID;
 public class GlobalExceptionHandler {
 
     /**
-     * Honeypot interception: if the only (or one of the) failing fields is "website",
-     * the submitter is a bot. Return a fake 200 duplicate response so the bot cannot
-     * distinguish success from failure. Any remaining real field errors are still surfaced
-     * as 400 when no honeypot is present.
+     * Honeypot interception: @AssertNull on SignupRequest.website fires here when a bot
+     * fills the hidden field. We log the IP at WARN, then return a fake 200 so the bot
+     * cannot distinguish failure from success. Nothing is persisted.
+     * Real validation errors (bad email, oversized name, …) return 400 as normal.
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<?> handleValidation(MethodArgumentNotValidException ex) {
+    public ResponseEntity<?> handleValidation(MethodArgumentNotValidException ex,
+                                              HttpServletRequest request) {
         var fieldErrors = ex.getBindingResult().getFieldErrors();
 
         boolean honeypotTriggered = fieldErrors.stream()
                 .anyMatch(fe -> "website".equals(fe.getField()));
 
         if (honeypotTriggered) {
-            // Silent 200 — bots cannot tell they were rejected
+            String ip = RateLimitInterceptor.extractClientIp(request);
+            log.warn("Honeypot triggered — possible bot [ip={}]", ip);
             return ResponseEntity.ok(new SignupResponse("Already registered", "00000000", true));
         }
 
