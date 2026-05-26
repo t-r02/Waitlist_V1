@@ -62,11 +62,11 @@ public class ReferralService {
         // DataIntegrityViolationException surfaces here, not at commit time
         referralRepo.saveAndFlush(ref);
 
-        // Fingerprint fraud check — runs after a successful referral insert
+        // Fingerprint fraud check — runs after a successful referral insert.
+        // Points are NOT awarded here; they are awarded by StatusChangedConsumer
+        // when the admin-service sets the entry's status to APPROVED.
         String ipHash = currentIpHash();
         updateFingerprint(referrer.getEmail(), ipHash);
-
-        awardPoints(referrer.getEmail(), 10);
     }
 
     @Transactional

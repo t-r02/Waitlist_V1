@@ -106,17 +106,15 @@ class ReferralServiceTest {
     // ── legitimate referral ───────────────────────────────────────────────────
 
     @Test
-    void legitimateReferral_createsReferralRowAndAwardsPoints() {
+    void legitimateReferral_createsReferralRowAndDoesNotAwardPoints() {
+        // Points are awarded by StatusChangedConsumer on APPROVED, not here.
         var referrer = entry("dave@example.com", "davecode");
         var referee  = entry("eve@example.com", "eveccode");
         stubReferrer(referrer);
         stubReferee(referee);
 
-        // No existing fingerprint
+        // No existing fingerprint (count will be 1 — below the flag threshold of 5)
         when(fingerprintRepo.findByReferrerEmailAndIpHash(eq("dave@example.com"), any()))
-                .thenReturn(Optional.empty());
-        // No existing points row
-        when(pointsRepo.findByEmail("dave@example.com"))
                 .thenReturn(Optional.empty());
 
         service.trackReferral("davecode", "eve@example.com");
@@ -126,12 +124,13 @@ class ReferralServiceTest {
                 "dave@example.com".equals(r.getReferrerEmail()) &&
                 "eve@example.com".equals(r.getRefereeEmail())));
 
-        // Points awarded — new ReferralPoints row saved with points > 0
-        verify(pointsRepo).save(argThat(rp -> rp.getPoints() > 0));
+        // Points repo must NOT be touched — points come later via APPROVED event
+        verify(pointsRepo, never()).save(any());
+        verify(pointsRepo, never()).findByEmail(any());
     }
 
     @Test
-    void legitimateReferral_existingPointsRow_pointsAccumulate() {
+    void legitimateReferral_fingerprintRowIsCreated() {
         var referrer = entry("dave@example.com", "davecode");
         var referee  = entry("eve@example.com", "eveccode");
         stubReferrer(referrer);
@@ -140,15 +139,11 @@ class ReferralServiceTest {
         when(fingerprintRepo.findByReferrerEmailAndIpHash(eq("dave@example.com"), any()))
                 .thenReturn(Optional.empty());
 
-        var existingPoints = new ReferralPoints();
-        existingPoints.setEmail("dave@example.com");
-        existingPoints.addPoints(10); // already has 10 from a previous referral
-        when(pointsRepo.findByEmail("dave@example.com"))
-                .thenReturn(Optional.of(existingPoints));
-
         service.trackReferral("davecode", "eve@example.com");
 
-        verify(pointsRepo).save(argThat(rp -> rp.getPoints() == 20));
+        // A new fingerprint row is saved
+        verify(fingerprintRepo).save(argThat(fp ->
+                "dave@example.com".equals(fp.getReferrerEmail()) && fp.getCount() == 1));
     }
 
     // ── fingerprint / flagging ────────────────────────────────────────────────
