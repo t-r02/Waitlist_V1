@@ -1,6 +1,5 @@
 package com.waitlist.ingestion.dto;
 
-import jakarta.validation.constraints.AssertNull;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -28,8 +27,8 @@ public class SignupRequest {
     )
     private String referralCode;
 
-    // Honeypot: legitimate clients never send this field.
-    // If it is present the request is silently treated as a duplicate (see GlobalExceptionHandler).
-    @AssertNull(message = "honeypot")
+    // Honeypot field: legitimate clients never populate this.
+    // Checked manually in SignupController before the service is called —
+    // no validation annotation needed (and @AssertNull has spotty Hibernate Validator support).
     private String website;
 }
