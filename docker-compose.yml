@@ -1,6 +1,10 @@
 version: '3.8'
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Infrastructure services
+# ─────────────────────────────────────────────────────────────────────────────
 services:
+
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     environment:
@@ -14,11 +18,17 @@ services:
     depends_on:
       - zookeeper
     ports:
-      - "9092:9092"
+      - "9092:9092"    # host → kafka (dev tools, IDE, curl)
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      # Two listeners:
+      #   INTERNAL  — used by Spring services inside the Docker network (kafka:29092)
+      #   EXTERNAL  — used by host-side tools (localhost:9092)
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:29092,EXTERNAL://0.0.0.0:9092
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://localhost:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
   redis:
@@ -42,4 +52,79 @@ services:
       - "5433:5432"
     volumes:
       - ./docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d waitlist"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
+# ─────────────────────────────────────────────────────────────────────────────
+# Application services
+# Build context is always the repo root so the :events sub-project is on the
+# classpath during gradle bootJar.
+# ─────────────────────────────────────────────────────────────────────────────
+
+  ingestion-service:
+    build:
+      context: .
+      dockerfile: ingestion-service/Dockerfile
+    ports:
+      - "8081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      redis:
+        condition: service_started
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: waitlist
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      KAFKA_BOOTSTRAP: kafka:29092
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+  admin-service:
+    build:
+      context: .
+      dockerfile: admin-service/Dockerfile
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: waitlist
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      KAFKA_BOOTSTRAP: kafka:29092
+
+  notification-service:
+    build:
+      context: .
+      dockerfile: notification-service/Dockerfile
+    ports:
+      - "8083:8083"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      mailhog:
+        condition: service_started
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: waitlist
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      KAFKA_BOOTSTRAP: kafka:29092
+      MAIL_HOST: mailhog
+      MAIL_PORT: 1025

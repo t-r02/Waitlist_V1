@@ -1,3 +1,7 @@
+// Suppress the *-plain.jar produced by the standard `jar` task so that
+// the Docker COPY *.jar glob matches exactly one file (the bootJar).
+jar { enabled = false }
+
 dependencies {
     implementation project(':events')
     implementation 'org.springframework.boot:spring-boot-starter-web'

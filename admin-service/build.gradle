@@ -1,3 +1,5 @@
+jar { enabled = false }
+
 dependencies {
     implementation project(':events')
     implementation 'org.springframework.boot:spring-boot-starter-web'
