@@ -8,6 +8,7 @@ import java.time.OffsetDateTime;
 @Data
 @Table(name = "waitlist_entries")
 public class WaitlistEntry {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -17,10 +18,6 @@ public class WaitlistEntry {
 
     private String name;
     private String company;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Status status = Status.PENDING;
 
     @Column(name = "referral_code", unique = true, nullable = false)
     private String referralCode;
