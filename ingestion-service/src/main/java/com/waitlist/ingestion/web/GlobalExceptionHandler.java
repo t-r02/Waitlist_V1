@@ -1,5 +1,6 @@
 package com.waitlist.ingestion.web;
 
+import com.waitlist.ingestion.dto.SignupResponse;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
@@ -20,9 +21,25 @@ import java.util.UUID;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    /**
+     * Honeypot interception: if the only (or one of the) failing fields is "website",
+     * the submitter is a bot. Return a fake 200 duplicate response so the bot cannot
+     * distinguish success from failure. Any remaining real field errors are still surfaced
+     * as 400 when no honeypot is present.
+     */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
-        List<String> errors = ex.getBindingResult().getFieldErrors().stream()
+    public ResponseEntity<?> handleValidation(MethodArgumentNotValidException ex) {
+        var fieldErrors = ex.getBindingResult().getFieldErrors();
+
+        boolean honeypotTriggered = fieldErrors.stream()
+                .anyMatch(fe -> "website".equals(fe.getField()));
+
+        if (honeypotTriggered) {
+            // Silent 200 — bots cannot tell they were rejected
+            return ResponseEntity.ok(new SignupResponse("Already registered", "00000000", true));
+        }
+
+        List<String> errors = fieldErrors.stream()
                 .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
                 .toList();
         return ResponseEntity.badRequest().body(body(400, "Validation failed", errors, null));

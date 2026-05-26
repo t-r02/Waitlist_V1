@@ -4,6 +4,7 @@ import com.waitlist.admin.domain.Status;
 import com.waitlist.admin.dto.BulkStatusRequest;
 import com.waitlist.admin.service.BulkStatusService;
 import com.waitlist.admin.service.EntryManagementService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +35,7 @@ public class AdminEntryController {
     }
     
     @PostMapping("/bulk")
-    public ResponseEntity<?> bulkUpdate(@RequestBody BulkStatusRequest req, Authentication auth) {
+    public ResponseEntity<?> bulkUpdate(@Valid @RequestBody BulkStatusRequest req, Authentication auth) {
         var result = bulkService.bulkUpdate(req.getIds(), req.getNewStatus(), auth.getName());
         
         if (!result.getFailures().isEmpty()) {
