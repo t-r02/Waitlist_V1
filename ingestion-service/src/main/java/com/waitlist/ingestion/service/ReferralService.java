@@ -141,7 +141,7 @@ public class ReferralService {
         }
     }
 
-    static String hashIp(String ip) {
+    public static String hashIp(String ip) {
         try {
             byte[] digest = MessageDigest.getInstance("SHA-256")
                     .digest(ip.getBytes(StandardCharsets.UTF_8));
