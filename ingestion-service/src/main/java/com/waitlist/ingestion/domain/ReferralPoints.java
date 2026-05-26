@@ -1,12 +1,15 @@
 package com.waitlist.ingestion.domain;
 
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
-@Data
+@Getter
+@Setter
 @Table(name = "referral_points")
 public class ReferralPoints {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -18,6 +21,9 @@ public class ReferralPoints {
     private int points = 0;
 
     private String badge;
+
+    @Column(nullable = false)
+    private boolean flagged = false;
 
     public void addPoints(int p) {
         points += p;

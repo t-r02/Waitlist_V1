@@ -6,4 +6,5 @@ import java.util.Optional;
 
 public interface WaitlistEntryRepository extends JpaRepository<WaitlistEntry, Long> {
     Optional<WaitlistEntry> findByEmail(String email);
+    Optional<WaitlistEntry> findByReferralCode(String referralCode);
 }

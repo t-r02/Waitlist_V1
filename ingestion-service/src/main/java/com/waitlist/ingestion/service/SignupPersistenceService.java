@@ -10,6 +10,8 @@ import com.waitlist.ingestion.dto.SignupResponse;
 import com.waitlist.ingestion.repository.OutboxRepository;
 import com.waitlist.ingestion.repository.WaitlistEntryRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +23,7 @@ import java.util.UUID;
  * Owns the @Transactional boundary for signup so that SignupService can catch
  * DataIntegrityViolationException *outside* a poisoned transaction.
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SignupPersistenceService {
@@ -47,7 +50,14 @@ public class SignupPersistenceService {
         repository.save(entry);
 
         if (req.getReferralCode() != null) {
-            referralService.trackReferral(req.getReferralCode(), normalized);
+            try {
+                referralService.trackReferral(req.getReferralCode(), normalized);
+            } catch (DataIntegrityViolationException e) {
+                // Duplicate referee: another request already recorded this referral.
+                // trackReferral runs in REQUIRES_NEW so its transaction rolled back cleanly;
+                // the outer signup transaction is unaffected.
+                log.debug("Duplicate referral skipped [refereeEmail={}]", normalized);
+            }
         }
 
         var event = new SignupEvent(
