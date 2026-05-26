@@ -26,6 +26,14 @@ spring:
     listener:
       ack-mode: RECORD
 
+management:
+  health:
+    mail:
+      # The DltRoutingTest mocks JavaMailSender, leaving the map empty.
+      # Actuator's MailHealthContributorAutoConfiguration fails on an empty
+      # bean map, so disable the mail health indicator in tests.
+      enabled: false
+
 app:
   kafka:
     error-handler:
