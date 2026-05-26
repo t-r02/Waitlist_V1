@@ -2,7 +2,7 @@ package com.waitlist.ingestion.controller;
 
 import com.waitlist.ingestion.dto.SignupRequest;
 import com.waitlist.ingestion.dto.SignupResponse;
-import com.waitlist.ingestion.service.ReferralService;
+import com.waitlist.ingestion.service.LeaderboardService;
 import com.waitlist.ingestion.service.SignupService;
 import com.waitlist.ingestion.web.RateLimitInterceptor;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,8 +18,8 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class SignupController {
 
-    private final SignupService signupService;
-    private final ReferralService referralService;
+    private final SignupService      signupService;
+    private final LeaderboardService leaderboardService;
 
     @PostMapping("/signup")
     public ResponseEntity<SignupResponse> signup(@Valid @RequestBody SignupRequest req,
@@ -35,8 +35,15 @@ public class SignupController {
         return ResponseEntity.ok(signupService.signup(req));
     }
 
+    /**
+     * Returns the top-10 leaderboard.
+     *
+     * @param window {@code all} (default) for all-time, {@code week} for the
+     *               current ISO week.  An unrecognised value yields 400.
+     */
     @GetMapping("/leaderboard")
-    public ResponseEntity<?> leaderboard() {
-        return ResponseEntity.ok(referralService.getLeaderboard());
+    public ResponseEntity<?> leaderboard(
+            @RequestParam(name = "window", defaultValue = "all") String window) {
+        return ResponseEntity.ok(leaderboardService.getLeaderboard(window));
     }
 }

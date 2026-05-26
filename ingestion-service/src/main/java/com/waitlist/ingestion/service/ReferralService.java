@@ -10,10 +10,11 @@ import com.waitlist.ingestion.repository.WaitlistEntryRepository;
 import com.waitlist.ingestion.web.RateLimitInterceptor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -21,7 +22,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.OffsetDateTime;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -30,16 +30,16 @@ public class ReferralService {
 
     private static final int MAX_REFERRALS_PER_IP_PER_24H = 5;
 
-    private final ReferralRepository referralRepo;
-    private final ReferralPointsRepository pointsRepo;
-    private final WaitlistEntryRepository entryRepo;
+    private final ReferralRepository         referralRepo;
+    private final ReferralPointsRepository   pointsRepo;
+    private final WaitlistEntryRepository    entryRepo;
     private final ReferralFingerprintRepository fingerprintRepo;
+    private final LeaderboardService         leaderboardService;
 
     /**
-     * REQUIRES_NEW: this transaction is independent of the caller's signup transaction.
-     * If a duplicate referee constraint fires, this transaction rolls back and
-     * DataIntegrityViolationException propagates to the caller, which catches and ignores it.
-     * Self-referrals are rejected before any DB write.
+     * REQUIRES_NEW: independent of the caller's signup transaction so that a
+     * duplicate-referee constraint fires inside this inner transaction and the
+     * outer signup transaction can still commit.
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void trackReferral(String referralCode, String refereeEmail) {
@@ -58,30 +58,47 @@ public class ReferralService {
         var ref = new Referral();
         ref.setReferrerEmail(referrer.getEmail());
         ref.setRefereeEmail(refereeEmail);
-        // saveAndFlush forces the flush inside this REQUIRES_NEW transaction so
-        // DataIntegrityViolationException surfaces here, not at commit time
+        // saveAndFlush surfaces DataIntegrityViolationException inside this
+        // REQUIRES_NEW transaction, not at outer-transaction commit time.
         referralRepo.saveAndFlush(ref);
 
         // Fingerprint fraud check — runs after a successful referral insert.
-        // Points are NOT awarded here; they are awarded by StatusChangedConsumer
-        // when the admin-service sets the entry's status to APPROVED.
+        // Points are awarded later by StatusChangedConsumer on APPROVED.
         String ipHash = currentIpHash();
         updateFingerprint(referrer.getEmail(), ipHash);
     }
 
+    /**
+     * Updates DB points and, after the enclosing transaction commits, pushes
+     * the new score to the Redis leaderboard sorted sets.
+     *
+     * <p>{@code delta} is signed: positive for an award, negative for a reversal.
+     */
     @Transactional
-    public void awardPoints(String email, int points) {
+    public void awardPoints(String email, int delta) {
         var rp = pointsRepo.findByEmail(email).orElseGet(() -> {
             var newRp = new ReferralPoints();
             newRp.setEmail(email);
             return newRp;
         });
-        rp.addPoints(points);
+        rp.addPoints(delta);
         pointsRepo.save(rp);
-    }
 
-    public List<ReferralPoints> getLeaderboard() {
-        return pointsRepo.findLeaderboard(PageRequest.of(0, 10));
+        int newTotal = rp.getPoints();
+
+        // Sync Redis only after the DB transaction commits so a rollback
+        // cannot leave Redis ahead of the DB.
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    leaderboardService.syncPoints(email, newTotal, delta);
+                }
+            });
+        } else {
+            // Outside an active transaction (e.g. unit tests) — sync immediately.
+            leaderboardService.syncPoints(email, newTotal, delta);
+        }
     }
 
     // ── Fingerprint helpers ──────────────────────────────────────────────────
@@ -127,9 +144,8 @@ public class ReferralService {
 
     /**
      * Reads the client IP from the current servlet request and returns a
-     * truncated SHA-256 hex digest. Returns "unknown" outside a web context
-     * (async workers, tests) so the fingerprint still functions but buckets
-     * everything under one key.
+     * truncated SHA-256 hex digest.  Returns {@code "unknown"} outside a web
+     * context (async workers, tests).
      */
     static String currentIpHash() {
         try {

@@ -37,6 +37,7 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+      timeout: 500ms          # command timeout — Redis failures surface quickly
 
 server:
   port: 8081

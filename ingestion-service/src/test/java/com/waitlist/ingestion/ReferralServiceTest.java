@@ -7,6 +7,7 @@ import com.waitlist.ingestion.repository.ReferralFingerprintRepository;
 import com.waitlist.ingestion.repository.ReferralPointsRepository;
 import com.waitlist.ingestion.repository.ReferralRepository;
 import com.waitlist.ingestion.repository.WaitlistEntryRepository;
+import com.waitlist.ingestion.service.LeaderboardService;
 import com.waitlist.ingestion.service.ReferralService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,12 +31,14 @@ class ReferralServiceTest {
     @Mock ReferralRepository referralRepo;
     @Mock ReferralPointsRepository pointsRepo;
     @Mock ReferralFingerprintRepository fingerprintRepo;
+    @Mock LeaderboardService leaderboardService;
 
     ReferralService service;
 
     @BeforeEach
     void setUp() {
-        service = new ReferralService(referralRepo, pointsRepo, entryRepo, fingerprintRepo);
+        service = new ReferralService(referralRepo, pointsRepo, entryRepo, fingerprintRepo,
+                leaderboardService);
     }
 
     // ── helpers ──────────────────────────────────────────────────────────────
