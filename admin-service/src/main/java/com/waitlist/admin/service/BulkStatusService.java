@@ -1,7 +1,7 @@
 package com.waitlist.admin.service;
 
-import com.waitlist.admin.domain.Status;
-import com.waitlist.admin.dto.BulkStatusResponse;
+import com.waitlist.admin.dto.response.BulkStatusResponse;
+import com.waitlist.admin.entity.Status;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -1,6 +1,6 @@
 package com.waitlist.ingestion.repository;
 
-import com.waitlist.ingestion.domain.WaitlistEntry;
+import com.waitlist.ingestion.entity.WaitlistEntry;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 

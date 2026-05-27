@@ -1,6 +1,6 @@
 package com.waitlist.admin.repository;
 
-import com.waitlist.admin.domain.AdminUser;
+import com.waitlist.admin.entity.AdminUser;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 

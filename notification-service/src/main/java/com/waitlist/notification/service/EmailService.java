@@ -2,7 +2,7 @@ package com.waitlist.notification.service;
 
 import com.waitlist.events.SignupEvent;
 import com.waitlist.events.StatusChangedEvent;
-import com.waitlist.notification.domain.NotificationLog;
+import com.waitlist.notification.entity.NotificationLog;
 import com.waitlist.notification.repository.NotificationLogRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.javamail.JavaMailSender;

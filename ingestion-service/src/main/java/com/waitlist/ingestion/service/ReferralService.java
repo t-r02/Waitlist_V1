@@ -1,13 +1,13 @@
 package com.waitlist.ingestion.service;
 
-import com.waitlist.ingestion.domain.Referral;
-import com.waitlist.ingestion.domain.ReferralFingerprint;
-import com.waitlist.ingestion.domain.ReferralPoints;
+import com.waitlist.ingestion.entity.Referral;
+import com.waitlist.ingestion.entity.ReferralFingerprint;
+import com.waitlist.ingestion.entity.ReferralPoints;
+import com.waitlist.ingestion.filter.RateLimitInterceptor;
 import com.waitlist.ingestion.repository.ReferralFingerprintRepository;
 import com.waitlist.ingestion.repository.ReferralPointsRepository;
 import com.waitlist.ingestion.repository.ReferralRepository;
 import com.waitlist.ingestion.repository.WaitlistEntryRepository;
-import com.waitlist.ingestion.web.RateLimitInterceptor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

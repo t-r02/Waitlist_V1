@@ -1,7 +1,8 @@
 package com.waitlist.ingestion.service;
 
-import com.waitlist.ingestion.domain.ReferralPoints;
-import com.waitlist.ingestion.dto.LeaderboardEntry;
+import com.waitlist.ingestion.dto.response.LeaderboardEntry;
+import com.waitlist.ingestion.entity.ReferralPoints;
+import com.waitlist.ingestion.mapper.LeaderboardMapper;
 import com.waitlist.ingestion.repository.ReferralPointsRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,6 +50,7 @@ public class LeaderboardService {
 
     private final StringRedisTemplate      redis;
     private final ReferralPointsRepository pointsRepo;
+    private final LeaderboardMapper        leaderboardMapper;
 
     // ── Write path ────────────────────────────────────────────────────────────
 
@@ -104,7 +106,7 @@ public class LeaderboardService {
             if ("all".equals(window)) {
                 log.debug("Redis empty for leaderboard:all — using DB fallback");
                 return pointsRepo.findLeaderboard(PageRequest.of(0, TOP_N)).stream()
-                        .map(rp -> new LeaderboardEntry(rp.getEmail(), rp.getPoints(), rp.getBadge()))
+                        .map(leaderboardMapper::toDto)
                         .toList();
             }
             log.debug("Redis empty for {} and weekly data cannot be rebuilt from DB", key);

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<meta http-equiv="x-ua-compatible" content="IE=edge"/>
+<title>Test results - AuthFlowTest</title>
+<link href="../css/base-style.css" rel="stylesheet" type="text/css"/>
+<link href="../css/style.css" rel="stylesheet" type="text/css"/>
+<script src="../js/report.js" type="text/javascript"></script>
+</head>
+<body>
+<div id="content">
+<h1>AuthFlowTest</h1>
+<div class="breadcrumbs">
+<a href="../index.html">all</a> &gt; 
+<a href="../packages/com.waitlist.admin.html">com.waitlist.admin</a> &gt; AuthFlowTest</div>
+<div id="summary">
+<table>
+<tr>
+<td>
+<div class="summaryGroup">
+<table>
+<tr>
+<td>
+<div class="infoBox" id="tests">
+<div class="counter">1</div>
+<p>tests</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="failures">
+<div class="counter">0</div>
+<p>failures</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="ignored">
+<div class="counter">0</div>
+<p>ignored</p>
+</div>
+</td>
+<td>
+<div class="infoBox" id="duration">
+<div class="counter">1.093s</div>
+<p>duration</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</td>
+<td>
+<div class="infoBox success" id="successRate">
+<div class="percent">100%</div>
+<p>successful</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div id="tabs">
+<ul class="tabLinks">
+<li>
+<a href="#tab0">Tests</a>
+</li>
+<li>
+<a href="#tab1">Standard output</a>
+</li>
+<li>
+<a href="#tab2">Standard error</a>
+</li>
+</ul>
+<div id="tab0" class="tab">
+<h2>Tests</h2>
+<table>
+<thead>
+<tr>
+<th>Test</th>
+<th>Duration</th>
+<th>Result</th>
+</tr>
+</thead>
+<tr>
+<td class="success">loginThenGetEntries_returns200()</td>
+<td class="success">1.093s</td>
+<td class="success">passed</td>
+</tr>
+</table>
+</div>
+<div id="tab1" class="tab">
+<h2>Standard output</h2>
+<span class="code">
+<pre>10:12:08.331 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [com.waitlist.admin.AuthFlowTest]: AuthFlowTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+10:12:08.576 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration com.waitlist.admin.AdminApplication for test class com.waitlist.admin.AuthFlowTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.0)
+
+2026-05-27T10:12:09.399+05:30  INFO 3176 --- [admin-service] [    Test worker] com.waitlist.admin.AuthFlowTest          : Starting AuthFlowTest using Java 21.0.10 with PID 3176 (started by Tushar in C:\Users\Tushar\IdeaProjects\Waitlist\admin-service)
+2026-05-27T10:12:09.401+05:30  INFO 3176 --- [admin-service] [    Test worker] com.waitlist.admin.AuthFlowTest          : The following 1 profile is active: &quot;test&quot;
+2026-05-27T10:12:11.577+05:30  INFO 3176 --- [admin-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-05-27T10:12:11.729+05:30  INFO 3176 --- [admin-service] [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 134 ms. Found 4 JPA repository interfaces.
+2026-05-27T10:12:15.538+05:30  INFO 3176 --- [admin-service] [    Test worker] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-05-27T10:12:15.711+05:30  INFO 3176 --- [admin-service] [    Test worker] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.3.1.Final
+2026-05-27T10:12:15.841+05:30  INFO 3176 --- [admin-service] [    Test worker] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-05-27T10:12:16.187+05:30  INFO 3176 --- [admin-service] [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-05-27T10:12:16.249+05:30  INFO 3176 --- [admin-service] [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-05-27T10:12:16.627+05:30  INFO 3176 --- [admin-service] [    Test worker] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:testdb user=SA
+2026-05-27T10:12:16.631+05:30  INFO 3176 --- [admin-service] [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-05-27T10:12:19.092+05:30  INFO 3176 --- [admin-service] [    Test worker] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-05-27T10:12:19.196+05:30  INFO 3176 --- [admin-service] [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-05-27T10:12:20.548+05:30  INFO 3176 --- [admin-service] [    Test worker] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-05-27T10:12:21.832+05:30  WARN 3176 --- [admin-service] [    Test worker] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-05-27T10:12:21.977+05:30  WARN 3176 --- [admin-service] [    Test worker] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: c8faee01-cc64-48b0-ab16-93f44b02e231
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-05-27T10:12:23.302+05:30  INFO 3176 --- [admin-service] [    Test worker] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint(s) beneath base path '/actuator'
+2026-05-27T10:12:23.572+05:30  INFO 3176 --- [admin-service] [    Test worker] o.s.s.web.DefaultSecurityFilterChain     : Will secure any request with [org.springframework.security.web.session.DisableEncodeUrlFilter@68f67bbd, org.springframework.security.web.context.request.async.WebAsyncManagerIntegrationFilter@5bd585a5, org.springframework.security.web.context.SecurityContextHolderFilter@4c19b0a8, org.springframework.security.web.header.HeaderWriterFilter@f243d5c, org.springframework.web.filter.CorsFilter@65c040c9, org.springframework.security.web.authentication.logout.LogoutFilter@6ba3eee9, com.waitlist.admin.security.SecurityConfig$1@27f7db5a, org.springframework.security.web.savedrequest.RequestCacheAwareFilter@1871068d, org.springframework.security.web.servletapi.SecurityContextHolderAwareRequestFilter@50d8b30, org.springframework.security.web.authentication.AnonymousAuthenticationFilter@11736ebc, org.springframework.security.web.access.ExceptionTranslationFilter@33317d26, org.springframework.security.web.access.intercept.AuthorizationFilter@34989ceb]
+2026-05-27T10:12:25.653+05:30  INFO 3176 --- [admin-service] [    Test worker] o.s.b.t.m.w.SpringBootMockServletContext : Initializing Spring TestDispatcherServlet ''
+2026-05-27T10:12:25.654+05:30  INFO 3176 --- [admin-service] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Initializing Servlet ''
+2026-05-27T10:12:25.657+05:30  INFO 3176 --- [admin-service] [    Test worker] o.s.t.web.servlet.TestDispatcherServlet  : Completed initialization in 2 ms
+2026-05-27T10:12:26.035+05:30  INFO 3176 --- [admin-service] [    Test worker] o.a.k.clients.consumer.ConsumerConfig    : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.include.jmx.reporter = true
+	auto.offset.reset = earliest
+	bootstrap.servers = [localhost:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-admin-service-1
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = admin-service
+	group.instance.id = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_uncommitted
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 500
+	metadata.max.age.ms = 300000
+	metric.reporters = []
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = null
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = null
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = null
+	ssl.truststore.type = JKS
+	value.deserializer = class org.springframework.kafka.support.serializer.JsonDeserializer
+
+2026-05-27T10:12:26.342+05:30  INFO 3176 --- [admin-service] [    Test worker] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 3.6.0
+2026-05-27T10:12:26.343+05:30  INFO 3176 --- [admin-service] [    Test worker] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: 60e845626d8a465a
+2026-05-27T10:12:26.343+05:30  INFO 3176 --- [admin-service] [    Test worker] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: 1779856946339
+2026-05-27T10:12:26.360+05:30  INFO 3176 --- [admin-service] [    Test worker] fkaConsumerFactory$ExtendedKafkaConsumer : [Consumer clientId=consumer-admin-service-1, groupId=admin-service] Subscribed to topic(s): waitlist.signup
+2026-05-27T10:12:26.383+05:30  INFO 3176 --- [admin-service] [    Test worker] com.waitlist.admin.AuthFlowTest          : Started AuthFlowTest in 17.579 seconds (process running for 19.965)
+2026-05-27T10:12:27.003+05:30  INFO 3176 --- [admin-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-admin-service-1, groupId=admin-service] Node -1 disconnected.
+2026-05-27T10:12:27.007+05:30  WARN 3176 --- [admin-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-admin-service-1, groupId=admin-service] Connection to node -1 (localhost/127.0.0.1:9092) could not be established. Broker may not be available.
+2026-05-27T10:12:27.007+05:30  WARN 3176 --- [admin-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-admin-service-1, groupId=admin-service] Bootstrap broker localhost:9092 (id: -1 rack: null) disconnected
+2026-05-27T10:12:27.121+05:30  INFO 3176 --- [admin-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-admin-service-1, groupId=admin-service] Node -1 disconnected.
+2026-05-27T10:12:27.122+05:30  WARN 3176 --- [admin-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-admin-service-1, groupId=admin-service] Connection to node -1 (localhost/127.0.0.1:9092) could not be established. Broker may not be available.
+2026-05-27T10:12:27.126+05:30  WARN 3176 --- [admin-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-admin-service-1, groupId=admin-service] Bootstrap broker localhost:9092 (id: -1 rack: null) disconnected
+2026-05-27T10:12:27.241+05:30  INFO 3176 --- [admin-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-admin-service-1, groupId=admin-service] Node -1 disconnected.
+2026-05-27T10:12:27.242+05:30  WARN 3176 --- [admin-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-admin-service-1, groupId=admin-service] Connection to node -1 (localhost/127.0.0.1:9092) could not be established. Broker may not be available.
+2026-05-27T10:12:27.242+05:30  WARN 3176 --- [admin-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-admin-service-1, groupId=admin-service] Bootstrap broker localhost:9092 (id: -1 rack: null) disconnected
+2026-05-27T10:12:27.324+05:30  WARN 3176 --- [admin-service] [    Test worker] o.s.w.s.h.HandlerMappingIntrospector     : Cache miss for REQUEST dispatch to '/api/admin/auth/login' (previous null). Performing CorsConfiguration lookup. This is logged once only at WARN level, and every time at TRACE.
+2026-05-27T10:12:27.496+05:30  INFO 3176 --- [admin-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-admin-service-1, groupId=admin-service] Node -1 disconnected.
+2026-05-27T10:12:27.501+05:30  WARN 3176 --- [admin-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-admin-service-1, groupId=admin-service] Connection to node -1 (localhost/127.0.0.1:9092) could not be established. Broker may not be available.
+2026-05-27T10:12:27.502+05:30  WARN 3176 --- [admin-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-admin-service-1, groupId=admin-service] Bootstrap broker localhost:9092 (id: -1 rack: null) disconnected
+2026-05-27T10:12:27.974+05:30  INFO 3176 --- [admin-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-admin-service-1, groupId=admin-service] Node -1 disconnected.
+2026-05-27T10:12:27.974+05:30  WARN 3176 --- [admin-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-admin-service-1, groupId=admin-service] Connection to node -1 (localhost/127.0.0.1:9092) could not be established. Broker may not be available.
+2026-05-27T10:12:27.974+05:30  WARN 3176 --- [admin-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-admin-service-1, groupId=admin-service] Bootstrap broker localhost:9092 (id: -1 rack: null) disconnected
+</pre>
+</span>
+</div>
+<div id="tab2" class="tab">
+<h2>Standard error</h2>
+<span class="code">
+<pre>WARNING: A Java agent has been loaded dynamically (C:\Users\Tushar\.gradle\caches\modules-2\files-2.1\net.bytebuddy\byte-buddy-agent\1.14.10\90ed94ac044ea8953b224304c762316e91fd6b31\byte-buddy-agent-1.14.10.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+</pre>
+</span>
+</div>
+</div>
+<div id="footer">
+<p>
+<div>
+<label class="hidden" id="label-for-line-wrapping-toggle" for="line-wrapping-toggle">Wrap lines
+<input id="line-wrapping-toggle" type="checkbox" autocomplete="off"/>
+</label>
+</div>Generated by 
+<a href="http://www.gradle.org">Gradle 8.5</a> at 27-May-2026, 10:12:29 am</p>
+</div>
+</div>
+</body>
+</html>

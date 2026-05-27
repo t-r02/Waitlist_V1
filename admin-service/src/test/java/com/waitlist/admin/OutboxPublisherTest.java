@@ -2,8 +2,8 @@ package com.waitlist.admin;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import com.waitlist.admin.domain.OutboxEntry;
-import com.waitlist.admin.messaging.OutboxPublisher;
+import com.waitlist.admin.entity.OutboxEntry;
+import com.waitlist.admin.scheduler.OutboxPublisher;
 import com.waitlist.admin.repository.OutboxRepository;
 import com.waitlist.events.StatusChangedEvent;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,6 +1,6 @@
 package com.waitlist.admin.repository;
 
-import com.waitlist.admin.domain.OutboxEntry;
+import com.waitlist.admin.entity.OutboxEntry;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

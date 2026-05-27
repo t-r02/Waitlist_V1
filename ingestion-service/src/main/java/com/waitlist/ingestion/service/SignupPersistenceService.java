@@ -3,10 +3,10 @@ package com.waitlist.ingestion.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.waitlist.events.SignupEvent;
-import com.waitlist.ingestion.domain.OutboxEntry;
-import com.waitlist.ingestion.domain.WaitlistEntry;
-import com.waitlist.ingestion.dto.SignupRequest;
-import com.waitlist.ingestion.dto.SignupResponse;
+import com.waitlist.ingestion.dto.request.SignupRequest;
+import com.waitlist.ingestion.dto.response.SignupResponse;
+import com.waitlist.ingestion.entity.OutboxEntry;
+import com.waitlist.ingestion.mapper.SignupMapper;
 import com.waitlist.ingestion.repository.OutboxRepository;
 import com.waitlist.ingestion.repository.WaitlistEntryRepository;
 import lombok.RequiredArgsConstructor;
@@ -29,9 +29,10 @@ import java.util.UUID;
 public class SignupPersistenceService {
 
     private final WaitlistEntryRepository repository;
-    private final OutboxRepository outboxRepository;
-    private final ObjectMapper objectMapper;
-    private final ReferralService referralService;
+    private final OutboxRepository        outboxRepository;
+    private final ObjectMapper            objectMapper;
+    private final ReferralService         referralService;
+    private final SignupMapper            signupMapper;
 
     @Transactional
     public SignupResponse doInsert(SignupRequest req, String normalized) {
@@ -40,12 +41,10 @@ public class SignupPersistenceService {
             return new SignupResponse("Already registered", existing.get().getReferralCode(), true);
         }
 
-        var entry = new WaitlistEntry();
+        // Mapper handles name / company / referredBy; computed fields are set below
+        var entry = signupMapper.toEntity(req);
         entry.setEmail(normalized);
-        entry.setName(req.getName());
-        entry.setCompany(req.getCompany());
         entry.setReferralCode(UUID.randomUUID().toString().substring(0, 8));
-        entry.setReferredBy(req.getReferralCode());
 
         repository.save(entry);
 

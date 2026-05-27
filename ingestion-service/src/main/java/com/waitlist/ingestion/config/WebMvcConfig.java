@@ -1,6 +1,6 @@
 package com.waitlist.ingestion.config;
 
-import com.waitlist.ingestion.web.RateLimitInterceptor;
+import com.waitlist.ingestion.filter.RateLimitInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;

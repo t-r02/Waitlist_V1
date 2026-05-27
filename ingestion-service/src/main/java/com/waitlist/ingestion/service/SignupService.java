@@ -1,7 +1,7 @@
 package com.waitlist.ingestion.service;
 
-import com.waitlist.ingestion.dto.SignupRequest;
-import com.waitlist.ingestion.dto.SignupResponse;
+import com.waitlist.ingestion.dto.request.SignupRequest;
+import com.waitlist.ingestion.dto.response.SignupResponse;
 import com.waitlist.ingestion.repository.WaitlistEntryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataIntegrityViolationException;

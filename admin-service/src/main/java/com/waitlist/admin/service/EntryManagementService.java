@@ -2,10 +2,10 @@ package com.waitlist.admin.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.waitlist.admin.domain.OutboxEntry;
-import com.waitlist.admin.domain.Status;
-import com.waitlist.admin.domain.StatusAuditLog;
-import com.waitlist.admin.domain.WaitlistEntry;
+import com.waitlist.admin.entity.OutboxEntry;
+import com.waitlist.admin.entity.Status;
+import com.waitlist.admin.entity.StatusAuditLog;
+import com.waitlist.admin.entity.WaitlistEntry;
 import com.waitlist.admin.repository.OutboxRepository;
 import com.waitlist.admin.repository.StatusAuditRepository;
 import com.waitlist.admin.repository.WaitlistEntryRepository;

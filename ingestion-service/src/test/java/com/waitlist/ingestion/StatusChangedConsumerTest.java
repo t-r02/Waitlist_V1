@@ -1,8 +1,8 @@
 package com.waitlist.ingestion;
 
 import com.waitlist.events.StatusChangedEvent;
-import com.waitlist.ingestion.domain.Referral;
-import com.waitlist.ingestion.messaging.StatusChangedConsumer;
+import com.waitlist.ingestion.entity.Referral;
+import com.waitlist.ingestion.messaging.consumer.StatusChangedConsumer;
 import com.waitlist.ingestion.repository.ReferralEventLogRepository;
 import com.waitlist.ingestion.repository.ReferralRepository;
 import com.waitlist.ingestion.service.ReferralService;

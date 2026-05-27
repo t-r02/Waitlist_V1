@@ -1,7 +1,8 @@
 package com.waitlist.ingestion;
 
-import com.waitlist.ingestion.domain.ReferralPoints;
-import com.waitlist.ingestion.dto.LeaderboardEntry;
+import com.waitlist.ingestion.dto.response.LeaderboardEntry;
+import com.waitlist.ingestion.entity.ReferralPoints;
+import com.waitlist.ingestion.mapper.LeaderboardMapper;
 import com.waitlist.ingestion.repository.ReferralPointsRepository;
 import com.waitlist.ingestion.service.LeaderboardService;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,6 +29,7 @@ class LeaderboardServiceTest {
     @Mock StringRedisTemplate redis;
     @Mock ZSetOperations<String, String> zSetOps;
     @Mock ReferralPointsRepository pointsRepo;
+    @Mock LeaderboardMapper leaderboardMapper;
 
     LeaderboardService service;
 
@@ -35,7 +37,7 @@ class LeaderboardServiceTest {
     void setUp() {
         // No shared stubs here — Mockito strict mode treats any unused stub as
         // an error. Each test configures only what it needs.
-        service = new LeaderboardService(redis, pointsRepo);
+        service = new LeaderboardService(redis, pointsRepo, leaderboardMapper);
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────
@@ -120,6 +122,8 @@ class LeaderboardServiceTest {
         rp.setEmail("bob@example.com");
         rp.addPoints(10);
         when(pointsRepo.findLeaderboard(any(Pageable.class))).thenReturn(List.of(rp));
+        // Mapper is used on the DB fallback path — stub it to return the expected DTO
+        when(leaderboardMapper.toDto(rp)).thenReturn(new LeaderboardEntry("bob@example.com", 10, null));
 
         List<LeaderboardEntry> entries = service.getLeaderboard("all");
 

@@ -1,8 +1,8 @@
 package com.waitlist.ingestion;
 
-import com.waitlist.ingestion.domain.ReferralFingerprint;
-import com.waitlist.ingestion.domain.ReferralPoints;
-import com.waitlist.ingestion.domain.WaitlistEntry;
+import com.waitlist.ingestion.entity.ReferralFingerprint;
+import com.waitlist.ingestion.entity.ReferralPoints;
+import com.waitlist.ingestion.entity.WaitlistEntry;
 import com.waitlist.ingestion.repository.ReferralFingerprintRepository;
 import com.waitlist.ingestion.repository.ReferralPointsRepository;
 import com.waitlist.ingestion.repository.ReferralRepository;

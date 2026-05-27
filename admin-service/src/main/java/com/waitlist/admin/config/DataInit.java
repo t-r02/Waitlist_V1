@@ -1,6 +1,6 @@
 package com.waitlist.admin.config;
 
-import com.waitlist.admin.domain.AdminUser;
+import com.waitlist.admin.entity.AdminUser;
 import com.waitlist.admin.repository.AdminUserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;

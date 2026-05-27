@@ -1,6 +1,6 @@
 package com.waitlist.ingestion.repository;
 
-import com.waitlist.ingestion.domain.ReferralPoints;
+import com.waitlist.ingestion.entity.ReferralPoints;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

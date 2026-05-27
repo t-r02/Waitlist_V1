@@ -1,7 +1,7 @@
 package com.waitlist.admin.controller;
 
 import com.waitlist.admin.repository.AdminUserRepository;
-import com.waitlist.admin.service.JwtService;
+import com.waitlist.admin.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;

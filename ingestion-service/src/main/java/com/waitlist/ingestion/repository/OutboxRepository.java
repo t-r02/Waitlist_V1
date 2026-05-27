@@ -1,6 +1,6 @@
 package com.waitlist.ingestion.repository;
 
-import com.waitlist.ingestion.domain.OutboxEntry;
+import com.waitlist.ingestion.entity.OutboxEntry;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 

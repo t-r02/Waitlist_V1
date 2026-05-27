@@ -1,252 +1,139 @@
-# Waitlist & Notification Platform
+# Waitlist
 
-A microservices-based waitlist management system with event-driven architecture using Kafka.
+Three Spring Boot microservices (Java 21) that handle public signups, admin triage, and transactional email — wired together with Kafka, backed by PostgreSQL, and cached in Redis. Built as a learning project to practise event-driven design at a scale small enough to fit in a laptop `docker compose up`.
+
+---
 
 ## Architecture
 
-### Services
-
-1. **Ingestion Service** (Port 8081)
-   - Public signup API
-   - Deduplication & normalization
-   - Referral tracking & leaderboard
-   - Rate limiting with Bucket4j
-
-2. **Admin Service** (Port 8082)
-   - Entry management (list, filter, update)
-   - Bulk operations with partial success (207 Multi-Status)
-   - State machine for legal transitions
-   - JWT authentication
-   - Audit logging
-
-3. **Notification Service** (Port 8083)
-   - Event-driven email notifications
-   - Idempotency checks
-   - Thymeleaf templates
-   - Dead Letter Topic (DLT) handling
-
-### Infrastructure
-
-- **Kafka**: Message broker for inter-service communication
-- **Redis**: Leaderboard caching
-- **MailHog**: Local SMTP server for testing emails
-- **H2**: In-memory databases (separate per service)
-
-## Setup
-
-### Prerequisites
-
-- Java 17+
-- Gradle (wrapper included)
-- Docker & Docker Compose
-
-### Start Infrastructure
-
-```bash
-docker-compose up -d
+```
+                        ┌─────────────────────────────────────────┐
+                        │            ingestion-service :8081       │
+                        │                                          │
+  POST /api/public/  ──▶│  SignupController                        │
+  signup                │    └─ SignupService                      │
+                        │         └─ SignupPersistenceService ─────┼──▶ PostgreSQL
+                        │              └─ OutboxEntry (DB write)   │     waitlist_entry
+                        │                                          │     outbox_entry
+                        │  ┌─ OutboxPublisher (@Scheduled 500 ms) ─┼──▶ Kafka
+                        │  │   FOR UPDATE SKIP LOCKED              │   waitlist.signup
+                        │  │                                       │
+                        │  └─ StatusChangedConsumer ───────────────┼◀── Kafka
+                        │       awards/reverses referral points    │   waitlist.status-changed
+                        │       syncs Redis leaderboard            │
+                        └─────────────────────────────────────────┘
+                                           │
+              ┌────────────────────────────┴────────────────────────┐
+              ▼                                                      ▼
+ ┌────────────────────────────┐                    ┌────────────────────────────────┐
+ │   admin-service :8082      │                    │  notification-service :8083    │
+ │                            │                    │                                │
+ │  SignupEventConsumer ───────┼◀── waitlist.signup │  SignupEventConsumer           │
+ │   projects signup into     │                    │   sends confirmation email     │
+ │   local WaitlistEntry      │                    │                                │
+ │                            │                    │  StatusChangedConsumer         │
+ │  AdminEntryController      │                    │   sends invitation email       │
+ │   PATCH /{id}?status=  ────┼──▶ PostgreSQL      │                                │
+ │   POST  /bulk          ────┼──▶ StatusAuditLog  │  DltHandler                   │
+ │                            │                    │   dead-letter sink + log       │
+ │  OutboxPublisher ──────────┼──▶ Kafka           │                                │
+ │   (@Scheduled 500 ms)      │   waitlist.        │  PostgreSQL: notification_log  │
+ │                            │   status-changed   │  (eventId idempotency key)     │
+ └────────────────────────────┘                    └────────────────────────────────┘
+              │
+              ▼
+        MailHog :8025
+        (local SMTP)
 ```
 
-This starts:
-- Kafka (localhost:9092)
-- Zookeeper (localhost:2181)
-- Redis (localhost:6379)
-- MailHog SMTP (localhost:1025) & UI (http://localhost:8025)
+**Event flow in one sentence:** every state change in admin is written to the DB outbox first, then published by the poller — so Kafka never sees a signup or status change that wasn't already durably committed to the database.
 
-### Build & Run Services
+---
+
+## Run it
 
 ```bash
-# Ingestion Service
-cd ingestion-service
-../gradlew bootRun
-
-# Admin Service
-cd admin-service
-../gradlew bootRun
-
-# Notification Service
-cd notification-service
-../gradlew bootRun
+./run.sh       # docker compose up + gradle bootRun for all three services
+./demo.sh      # fires a signup, approves it, and tails MailHog for the email
 ```
 
-Or use the batch script:
-```bash
-start-all.bat
-```
+Services start on `:8081` (ingestion), `:8082` (admin), `:8083` (notification).  
+MailHog UI at `http://localhost:8025`.
 
-## API Usage
-
-### Public Signup
+### Quick API reference
 
 ```bash
-curl -X POST http://localhost:8081/api/public/signup \
+# Sign up
+curl -s -X POST http://localhost:8081/api/public/signup \
   -H "Content-Type: application/json" \
-  -d '{
-    "email": "user@example.com",
-    "name": "John Doe",
-    "company": "Acme Inc",
-    "referralCode": "abc123"
-  }'
-```
+  -d '{"email":"alice@example.com","name":"Alice","referralCode":""}'
 
-Response:
-```json
-{
-  "message": "Successfully registered",
-  "referralCode": "xyz789",
-  "duplicate": false
-}
-```
-
-### Leaderboard
-
-```bash
-curl http://localhost:8081/api/public/leaderboard
-```
-
-### Admin Login
-
-```bash
-curl -X POST http://localhost:8082/api/admin/auth/login \
+# Sign up via referral
+curl -s -X POST http://localhost:8081/api/public/signup \
   -H "Content-Type: application/json" \
-  -d '{
-    "username": "admin",
-    "password": "admin123"
-  }'
-```
+  -d '{"email":"bob@example.com","name":"Bob","referralCode":"<alice-code>"}'
 
-Response:
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiJ9..."
-}
-```
+# Leaderboard (all-time)
+curl http://localhost:8081/api/public/leaderboard?window=all
 
-### List Entries
+# Leaderboard (current ISO week)
+curl http://localhost:8081/api/public/leaderboard?window=week
 
-```bash
-# All entries
-curl http://localhost:8082/api/admin/entries \
-  -H "Authorization: Bearer <token>"
+# Admin login → get JWT
+TOKEN=$(curl -s -X POST http://localhost:8082/api/admin/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"admin123"}' | jq -r .token)
+
+# List all entries
+curl -H "Authorization: Bearer $TOKEN" http://localhost:8082/api/admin/entries
 
 # Filter by status
-curl http://localhost:8082/api/admin/entries?status=PENDING \
-  -H "Authorization: Bearer <token>"
-```
+curl -H "Authorization: Bearer $TOKEN" \
+  "http://localhost:8082/api/admin/entries?status=PENDING"
 
-### Update Single Entry
+# Approve a single entry
+curl -s -X PATCH \
+  "http://localhost:8082/api/admin/entries/1?status=APPROVED" \
+  -H "Authorization: Bearer $TOKEN"
 
-```bash
-curl -X PATCH http://localhost:8082/api/admin/entries/1?status=APPROVED \
-  -H "Authorization: Bearer <token>"
-```
-
-### Bulk Update
-
-```bash
-curl -X POST http://localhost:8082/api/admin/entries/bulk \
-  -H "Authorization: Bearer <token>" \
+# Bulk approve (207 Multi-Status on partial failure)
+curl -s -X POST http://localhost:8082/api/admin/entries/bulk \
+  -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
-  -d '{
-    "ids": [1, 2, 3],
-    "newStatus": "APPROVED"
-  }'
+  -d '{"ids":[1,2,3],"newStatus":"APPROVED"}'
 ```
 
-Response (207 Multi-Status if partial failure):
-```json
-{
-  "successCount": 2,
-  "failures": ["ID 3: Invalid transition"]
-}
-```
+---
 
-## State Machine
+## Design decisions
 
-Valid transitions:
-- PENDING → APPROVED, REJECTED
-- APPROVED → INVITED, REJECTED
-- REJECTED → PENDING
-- INVITED → (terminal state)
+### Kafka over RabbitMQ or Redis Streams
+Kafka's log gives the admin projection and the notification service independent consumer groups that can replay from offset 0 after a bug fix or deployment gap. With a queue you get one delivery; with Kafka you get a rewindable history. The tradeoff is operational weight — Kafka requires Zookeeper (or KRaft) and topic pre-provisioning — which matters less once you're running Docker Compose anyway.
 
-## Features
+### Transactional Outbox over direct publish
+Writing to `outbox_entry` in the same transaction as `waitlist_entry` means the DB commit is the source of truth: either both the signup row and the event land, or neither does. The poller (`FOR UPDATE SKIP LOCKED`, 500 ms interval) then publishes and marks the row sent. The cost is ~500 ms of added event latency and a permanent scheduled thread. The alternative — publishing to Kafka inside the transaction — risks a partial failure where the DB rolls back but the message is already in the broker.
 
-### Level 1 - Capture & Triage
-✅ Public signup with deduplication (email normalization)
-✅ Double-click protection (idempotent)
-✅ Admin list, filter, inspect entries
-✅ Individual & batch status updates
-✅ State machine with legal transitions
-✅ Bulk operations with partial success reporting
-✅ Seeded admin user (admin/admin123)
+### At-least-once delivery + eventId idempotency
+Both notification-service and admin-service key their idempotency on `eventId` (a UUID set by the publisher). Duplicate delivery on retry causes a unique-constraint violation on `notification_log.event_id` / `referral_event_log.event_id`, which the consumer catches and ignores. The tradeoff versus exactly-once: retried messages still do redundant DB reads; but the alternative (Kafka transactions + `enable.idempotence`) would lock us into Kafka-native producers only and complicate the outbox pattern.
 
-### Level 2 - Microservices
-✅ Three independent services
-✅ Kafka event broker
-✅ Separate databases per service
-✅ Event-driven notifications
-✅ MailHog integration
-✅ Referral system with points & badges
-✅ Leaderboard (Redis-backed)
+### Dead Letter Topic + bounded retries
+After `spring.kafka.consumer.max-retries` attempts (default: 3) with exponential backoff, poison messages move to `waitlist.signup.dlt` / `waitlist.status-changed.dlt`. The `DltHandler` in notification-service logs them for human inspection. The tradeoff: a bad message is never retried past the bound, so transient infra blips that outlast the retry window will need a manual replay. The upside is partition forward-progress — one bad record can't hold up every record behind it.
 
-## Kafka Topics
+### State machine lives in admin-service only
+Ingestion is append-only: it accepts signups and tracks referrals, but has no opinion on status. Admin is the single source of truth for `PENDING → APPROVED → INVITED` (or `REJECTED → PENDING`). This prevents split-brain where two services disagree on a legal transition. The tradeoff is that ingestion must subscribe to `waitlist.status-changed` to award referral points, rather than reacting to a local state change.
 
-- `waitlist.signup` - New signups
-- `waitlist.status-changed` - Status updates
-- `*.dlt` - Dead letter topics for failed messages
+### Points awarded on APPROVED, not on signup
+Referral points (10 pts per referee) fire when the referee reaches `APPROVED`, not when they sign up. Points are reversed if an approved entry is subsequently rejected. This means the leaderboard reflects real conversions, not invite-spam. The tradeoff is that a referrer waits for admin action before seeing their score move — acceptable for a waitlist, wrong for a SaaS activation funnel.
 
-## Email Templates
+### Per-IP rate limit + honeypot, not CAPTCHA
+The signup endpoint enforces 10 requests/IP/min (Bucket4j + Caffeine) and a global 1000 req/min ceiling. The `website` field is a honeypot — bots fill it, real browsers leave it blank. No CAPTCHA because this is a research project: the friction cost of CAPTCHA on real users outweighs the risk of bot signups in a closed waitlist. Fingerprinting (SHA-256 IP hash, 5 referrals/IP/24 h threshold) catches coordinated self-referral without ever storing raw IPs.
 
-View sent emails at: http://localhost:8025
+---
 
-Templates:
-- `confirmation.html` - Welcome email with referral code
-- `invitation.html` - Status change notifications
+## What I'd add given another week
 
-## Referral System
-
-- Each signup gets a unique referral code
-- Referrer earns 10 points per successful referral
-- Badges: BRONZE (5+), SILVER (20+), GOLD (50+)
-- Leaderboard shows top 10 referrers
-
-## Design Decisions
-
-### Deduplication
-- Email normalized to lowercase and trimmed
-- Unique constraint on email column
-- Returns existing referral code for duplicates
-
-### Rate Limiting
-- Bucket4j: 100 requests/minute per service instance
-- Returns 429 Too Many Requests when exceeded
-
-### Partial Success
-- Bulk operations return 207 Multi-Status
-- Response includes successCount and failures array
-- Each failure includes ID and reason
-
-### Idempotency
-- Notifications use composite event keys
-- Prevents duplicate emails on replay
-- NotificationLog tracks sent messages
-
-### Authentication
-- JWT tokens (24h expiry)
-- Hardcoded secret for demo (use env vars in prod)
-- Seeded admin user on startup
-
-## Monitoring
-
-- MailHog UI: http://localhost:8025
-- H2 Consoles (if enabled): http://localhost:808{1,2,3}/h2-console
-
-## Production Considerations
-
-- Replace H2 with PostgreSQL/MySQL
-- Externalize JWT secret to env vars
-- Add proper retry policies with exponential backoff
-- Implement distributed rate limiting (Redis)
-- Add observability (Prometheus, Grafana)
-- Use proper secret management (AWS Secrets Manager)
-- Add API gateway for routing
-- Implement circuit breakers (Resilience4j)
+- **OpenAPI spec** — annotate controllers with `springdoc-openapi` so the contract is machine-readable and the Swagger UI replaces most of this curl reference.
+- **Distributed tracing** — add OpenTelemetry agent, export spans to Tempo/Jaeger. The `X-Correlation-Id` header is already propagated via MDC; OTel would close the gap for Kafka hops.
+- **Proper RBAC for admin** — right now any valid JWT can do anything. A role claim (`ROLE_VIEWER` vs `ROLE_OPERATOR`) with method-level `@PreAuthorize` would be a one-afternoon addition.
+- **Debezium CDC** instead of the polling outbox — replace `OutboxPublisher` with a Debezium connector that tails the Postgres WAL. Eliminates the 500 ms polling latency, removes the scheduled thread, and makes the outbox table append-only (no `published` flag needed).
+- **Email hash partitioning** — key Kafka messages by `email` so all events for the same user land on the same partition and arrive in order. Currently the partition key is unset, so signup and approval events for the same user can arrive out of order at the notification consumer.

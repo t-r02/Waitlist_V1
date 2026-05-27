@@ -1,6 +1,6 @@
 package com.waitlist.notification.repository;
 
-import com.waitlist.notification.domain.NotificationLog;
+import com.waitlist.notification.entity.NotificationLog;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;

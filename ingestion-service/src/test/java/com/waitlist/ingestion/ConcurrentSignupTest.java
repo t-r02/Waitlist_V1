@@ -1,8 +1,8 @@
 package com.waitlist.ingestion;
 
-import com.waitlist.ingestion.domain.WaitlistEntry;
-import com.waitlist.ingestion.dto.SignupRequest;
-import com.waitlist.ingestion.dto.SignupResponse;
+import com.waitlist.ingestion.entity.WaitlistEntry;
+import com.waitlist.ingestion.dto.request.SignupRequest;
+import com.waitlist.ingestion.dto.response.SignupResponse;
 import com.waitlist.ingestion.repository.WaitlistEntryRepository;
 import com.waitlist.ingestion.service.SignupPersistenceService;
 import com.waitlist.ingestion.service.SignupService;

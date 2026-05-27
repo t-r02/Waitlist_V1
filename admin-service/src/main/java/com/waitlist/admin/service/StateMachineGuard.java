@@ -1,6 +1,6 @@
 package com.waitlist.admin.service;
 
-import com.waitlist.admin.domain.Status;
+import com.waitlist.admin.entity.Status;
 import org.springframework.stereotype.Component;
 import java.util.Map;
 import java.util.Set;

@@ -1,10 +1,10 @@
 package com.waitlist.ingestion.controller;
 
-import com.waitlist.ingestion.dto.SignupRequest;
-import com.waitlist.ingestion.dto.SignupResponse;
+import com.waitlist.ingestion.dto.request.SignupRequest;
+import com.waitlist.ingestion.dto.response.SignupResponse;
+import com.waitlist.ingestion.filter.RateLimitInterceptor;
 import com.waitlist.ingestion.service.LeaderboardService;
 import com.waitlist.ingestion.service.SignupService;
-import com.waitlist.ingestion.web.RateLimitInterceptor;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
