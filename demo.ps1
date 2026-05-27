@@ -71,7 +71,7 @@ for ($i = 1; $i -le 15; $i++) {
 if (-not $entryId) { Log "ERROR: entry never appeared in admin-service after 30 s"; exit 1 }
 
 # -- 4. Approve ---------------------------------------------------------------
-Log "Step 4 -- PATCH $ADMIN/api/admin/entries/$entryId?status=APPROVED"
+Log "Step 4 -- PATCH $ADMIN/api/admin/entries/${entryId}?status=APPROVED"
 $patchResp = Invoke-WebRequest `
     -Uri "$ADMIN/api/admin/entries/${entryId}?status=APPROVED" `
     -Method PATCH `
