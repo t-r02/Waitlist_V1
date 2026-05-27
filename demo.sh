@@ -74,7 +74,7 @@ log "Step 5 — Polling $MAILPIT for 2 emails to $EMAIL (up to 30 s)"
 COUNT=0
 for i in $(seq 1 15); do
   # Filter messages by To address using jq (avoids URL-encoding the @ in curl)
-  MESSAGES=$(curl -sf "$MAILPIT/api/v2/messages?limit=50")
+  MESSAGES=$(curl -sf "$MAILPIT/api/v1/messages?limit=50")
   COUNT=$(echo "$MESSAGES" | jq --arg e "$EMAIL" \
     '[.messages[] | select(.To != null and (.To | any(.Address == $e)))] | length')
   log "  Attempt $i: $COUNT email(s) received"

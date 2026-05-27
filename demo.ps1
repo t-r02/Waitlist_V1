@@ -86,7 +86,7 @@ Log "  Approved (HTTP $($patchResp.StatusCode))"
 Log "Step 5 — Polling $MAILPIT for 2 emails to $EMAIL (up to 30 s)"
 $count = 0
 for ($i = 1; $i -le 15; $i++) {
-    $msgs = Invoke-Api -Uri "$MAILPIT/api/v2/messages?limit=50" | ConvertFrom-Json
+    $msgs = Invoke-Api -Uri "$MAILPIT/api/v1/messages?limit=50" | ConvertFrom-Json
     $count = @($msgs.messages | Where-Object {
         $_.To -and ($_.To | Where-Object { $_.Address -eq $EMAIL })
     }).Count
