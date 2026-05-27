@@ -39,10 +39,12 @@ public class EntryManagementService {
 
     @Transactional
     public void updateStatus(Long id, Status newStatus, String adminUser) {
-        var entry = entryRepo.findById(id).orElseThrow();
+        var entry = entryRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Entry not found: " + id));
 
         if (!guard.isValidTransition(entry.getStatus(), newStatus)) {
-            throw new IllegalStateException("Invalid transition");
+            throw new IllegalStateException(
+                    "Invalid transition: %s -> %s".formatted(entry.getStatus(), newStatus));
         }
 
         var log = new StatusAuditLog();
