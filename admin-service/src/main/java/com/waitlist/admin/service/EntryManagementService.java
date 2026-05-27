@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -40,7 +41,7 @@ public class EntryManagementService {
     @Transactional
     public void updateStatus(Long id, Status newStatus, String adminUser) {
         var entry = entryRepo.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Entry not found: " + id));
+                .orElseThrow(() -> new NoSuchElementException("Entry not found: " + id));
 
         if (!guard.isValidTransition(entry.getStatus(), newStatus)) {
             throw new IllegalStateException(

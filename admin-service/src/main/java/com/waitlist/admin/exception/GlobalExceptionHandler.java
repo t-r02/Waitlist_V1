@@ -4,6 +4,7 @@ import com.waitlist.admin.filter.CorrelationIdFilter;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,13 @@ public class GlobalExceptionHandler {
                 .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
                 .toList();
         return ResponseEntity.badRequest().body(body(400, "Validation failed", errors, null));
+    }
+
+    @ExceptionHandler(TypeMismatchException.class)
+    public ResponseEntity<Map<String, Object>> handleTypeMismatch(TypeMismatchException ex) {
+        String msg = "Invalid value '" + ex.getValue() + "' for parameter type " +
+                (ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown");
+        return ResponseEntity.badRequest().body(body(400, msg, null, null));
     }
 
     @ExceptionHandler(IllegalStateException.class)
