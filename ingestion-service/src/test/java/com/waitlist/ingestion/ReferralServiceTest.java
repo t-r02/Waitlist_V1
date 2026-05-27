@@ -22,6 +22,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -55,18 +56,14 @@ class ReferralServiceTest {
                 .thenReturn(Optional.of(referrer));
     }
 
-    private void stubReferee(WaitlistEntry referee) {
-        when(entryRepo.findByEmail(referee.getEmail()))
-                .thenReturn(Optional.of(referee));
-    }
-
     // ── self-referral ─────────────────────────────────────────────────────────
 
     @Test
     void selfReferral_isRejectedAndNothingIsPersisted() {
+        // The referee existence check was removed (BUG #3 fix); only the referrer
+        // lookup (by code) happens inside trackReferral now.
         var person = entry("alice@example.com", "aliccode");
         stubReferrer(person);
-        stubReferee(person);
 
         service.trackReferral("aliccode", "alice@example.com");
 
@@ -78,8 +75,6 @@ class ReferralServiceTest {
     void selfReferral_caseInsensitive_isRejected() {
         var person = entry("alice@example.com", "aliccode");
         stubReferrer(person);
-        // refereeEmail arrives upper-cased — stub must match the exact string passed to findByEmail
-        when(entryRepo.findByEmail("ALICE@EXAMPLE.COM")).thenReturn(Optional.of(person));
 
         service.trackReferral("aliccode", "ALICE@EXAMPLE.COM");
 
@@ -91,9 +86,7 @@ class ReferralServiceTest {
     @Test
     void duplicateReferee_throwsDataIntegrityViolation_andPointsAreNotAwarded() {
         var referrer = entry("bob@example.com", "bobscode");
-        var referee  = entry("carol@example.com", "xxxxxxxx");
         stubReferrer(referrer);
-        stubReferee(referee);
 
         when(referralRepo.saveAndFlush(any()))
                 .thenThrow(new DataIntegrityViolationException("duplicate key value violates unique constraint"));
@@ -112,9 +105,7 @@ class ReferralServiceTest {
     void legitimateReferral_createsReferralRowAndDoesNotAwardPoints() {
         // Points are awarded by StatusChangedConsumer on APPROVED, not here.
         var referrer = entry("dave@example.com", "davecode");
-        var referee  = entry("eve@example.com", "eveccode");
         stubReferrer(referrer);
-        stubReferee(referee);
 
         // No existing fingerprint (count will be 1 — below the flag threshold of 5)
         when(fingerprintRepo.findByReferrerEmailAndIpHash(eq("dave@example.com"), any()))
@@ -122,7 +113,7 @@ class ReferralServiceTest {
 
         service.trackReferral("davecode", "eve@example.com");
 
-        // Referral row created with correct emails
+        // Referral row created with correct referrer and referee emails
         verify(referralRepo).saveAndFlush(argThat(r ->
                 "dave@example.com".equals(r.getReferrerEmail()) &&
                 "eve@example.com".equals(r.getRefereeEmail())));
@@ -135,9 +126,7 @@ class ReferralServiceTest {
     @Test
     void legitimateReferral_fingerprintRowIsCreated() {
         var referrer = entry("dave@example.com", "davecode");
-        var referee  = entry("eve@example.com", "eveccode");
         stubReferrer(referrer);
-        stubReferee(referee);
 
         when(fingerprintRepo.findByReferrerEmailAndIpHash(eq("dave@example.com"), any()))
                 .thenReturn(Optional.empty());
@@ -149,14 +138,39 @@ class ReferralServiceTest {
                 "dave@example.com".equals(fp.getReferrerEmail()) && fp.getCount() == 1));
     }
 
+    /**
+     * Regression test for BUG #3: the old code began with
+     * {@code if (entryRepo.findByEmail(refereeEmail).isEmpty()) return;} which always
+     * exited early because the REQUIRES_NEW inner transaction cannot see the
+     * still-uncommitted referee row from the outer signup transaction.  After the fix,
+     * trackReferral goes straight to the referrer lookup and inserts the referral row.
+     */
+    @Test
+    void bug3Regression_trackReferral_doesNotQueryRefereeAndCreatesRow() {
+        // Arrange: valid referrer, some referee email (not yet committed in outer tx)
+        var referrer = entry("alice@example.com", "aliccode");
+        stubReferrer(referrer);
+        when(fingerprintRepo.findByReferrerEmailAndIpHash(eq("alice@example.com"), any()))
+                .thenReturn(Optional.empty());
+
+        // Act
+        service.trackReferral("aliccode", "bob@example.com");
+
+        // Assert: entryRepo.findByEmail was NEVER called (the removed guard)
+        verify(entryRepo, never()).findByEmail(any());
+
+        // And the referral row WAS created
+        verify(referralRepo).saveAndFlush(argThat(r ->
+                "alice@example.com".equals(r.getReferrerEmail()) &&
+                "bob@example.com".equals(r.getRefereeEmail())));
+    }
+
     // ── fingerprint / flagging ────────────────────────────────────────────────
 
     @Test
     void referrer_flaggedWhenFingerprintExceedsThreshold() {
         var referrer = entry("spammer@example.com", "spamcode");
-        var referee  = entry("victim@example.com", "victcode");
         stubReferrer(referrer);
-        stubReferee(referee);
 
         var fp = new ReferralFingerprint();
         fp.setReferrerEmail("spammer@example.com");

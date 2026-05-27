@@ -57,9 +57,7 @@ class ReferralServiceFingerprintTest {
     @Test
     void fingerprintBelowThreshold_countIncrementedButNotFlagged() {
         var referrer = entry("referrer@example.com", "ref00001");
-        var referee  = entry("referee@example.com",  "ref00002");
         when(entryRepo.findByReferralCode("ref00001")).thenReturn(Optional.of(referrer));
-        when(entryRepo.findByEmail("referee@example.com")).thenReturn(Optional.of(referee));
 
         var fp = new ReferralFingerprint();
         fp.setReferrerEmail("referrer@example.com");
@@ -82,9 +80,7 @@ class ReferralServiceFingerprintTest {
     @Test
     void expiredWindow_countResetsToOneAndReferrerIsNotFlagged() {
         var referrer = entry("oldspam@example.com", "spamcode");
-        var referee  = entry("victim@example.com",  "victcode");
         when(entryRepo.findByReferralCode("spamcode")).thenReturn(Optional.of(referrer));
-        when(entryRepo.findByEmail("victim@example.com")).thenReturn(Optional.of(referee));
 
         // Fingerprint exists but its window started 25 hours ago (expired)
         var fp = new ReferralFingerprint();
@@ -108,9 +104,7 @@ class ReferralServiceFingerprintTest {
     @Test
     void alreadyFlaggedReferrer_isNotSavedAgain() {
         var referrer = entry("flagged@example.com", "flagcode");
-        var referee  = entry("victim2@example.com", "vic2code");
         when(entryRepo.findByReferralCode("flagcode")).thenReturn(Optional.of(referrer));
-        when(entryRepo.findByEmail("victim2@example.com")).thenReturn(Optional.of(referee));
 
         // Fingerprint already over threshold
         var fp = new ReferralFingerprint();

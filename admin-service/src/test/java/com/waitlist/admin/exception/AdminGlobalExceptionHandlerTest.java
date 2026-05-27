@@ -9,11 +9,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.NoSuchElementException;
 
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -58,6 +62,15 @@ class AdminGlobalExceptionHandlerTest {
 
         @GetMapping("/test/illegal-arg")
         void illegalArg() { throw new IllegalArgumentException("not handled by admin handler"); }
+
+        @PostMapping("/test/malformed")
+        ResponseEntity<Void> malformed(@RequestBody SimpleDto dto) { return ResponseEntity.ok().build(); }
+    }
+
+    static class SimpleDto {
+        private String value;
+        public String getValue() { return value; }
+        public void setValue(String value) { this.value = value; }
     }
 
     // Stand-in Status class for testing TypeMismatchException
@@ -100,6 +113,16 @@ class AdminGlobalExceptionHandlerTest {
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))
                 .andExpect(jsonPath("$.correlationId").isNotEmpty());
+    }
+
+    @Test
+    void malformedJson_returns400WithMessage() throws Exception {
+        mockMvc.perform(post("/test/malformed")
+                        .contentType(APPLICATION_JSON)
+                        .content("NOT JSON AT ALL"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Malformed or unreadable request body"));
     }
 
     @Test

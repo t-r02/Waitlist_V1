@@ -62,6 +62,11 @@ class GlobalExceptionHandlerTest {
         ResponseEntity<Void> validation(@Valid @RequestBody ValidatedDto dto) {
             return ResponseEntity.ok().build();
         }
+
+        @PostMapping("/test/malformed")
+        ResponseEntity<Void> malformed(@RequestBody ValidatedDto dto) {
+            return ResponseEntity.ok().build();
+        }
     }
 
     static class ValidatedDto {
@@ -110,6 +115,16 @@ class GlobalExceptionHandlerTest {
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.status").value(500))
                 .andExpect(jsonPath("$.correlationId").isNotEmpty());
+    }
+
+    @Test
+    void malformedJson_returns400WithMessage() throws Exception {
+        mockMvc.perform(post("/test/malformed")
+                        .contentType(APPLICATION_JSON)
+                        .content("NOT JSON AT ALL"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.message").value("Malformed or unreadable request body"));
     }
 
     @Test

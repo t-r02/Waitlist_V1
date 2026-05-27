@@ -43,8 +43,12 @@ public class ReferralService {
      */
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void trackReferral(String referralCode, String refereeEmail) {
-        if (entryRepo.findByEmail(refereeEmail).isEmpty()) return;
-
+        // Note: we do NOT check entryRepo.findByEmail(refereeEmail) here.
+        // trackReferral is called from within the outer signup transaction, after
+        // repository.save(entry) but before that transaction commits.  The REQUIRES_NEW
+        // inner transaction cannot see the uncommitted referee row, so that guard would
+        // always return early and silently drop every referral.  The referee is, by
+        // definition, the entry that was just created; we know it exists.
         var referrerOpt = entryRepo.findByReferralCode(referralCode);
         if (referrerOpt.isEmpty()) return;
 
